@@ -9,13 +9,27 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 
+use App\Tasks;
+use App\Lists;
+
+use DB;
+
 class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-   
+
     public function Test(){
-        return session()->all();
+      /*
+      return response()->json(Lists::find(9)->getTasks);
+      return response()->json(Tasks::find(10)->getLists);
+      return response()->json(Tasks::with('getLists')->get());
+      return response()->json(Lists::with('getTasks')->get());
+      return response()->json(Lists::pluck('name'));
+      */
+        // $list = Lists::where('name', 'hgj')->firstOrFail();
+        // return response()->json($list->getTasks()->where('name', '123')->delete());
+        // return session()->all();
     }
 
     public function delTest(){
@@ -24,196 +38,99 @@ class Controller extends BaseController
     }
 
     public function list(Request $request){
-        
-        if (session()->has('ToDoList')) 
-        {
-            $items=session('ToDoList');
-            return view('List',['items'=>$items]);
-        } else {
-            return view('List',['items'=>[]]);
-        }
+        $data = Lists::pluck('name');
+        return view('List',['items'=>$data]);
     }
 
     public function addGroup(){
         return view('addGroup');
     }
-  
+
     public function addGroupPOST(Request $req){
-        if (empty($req->group)){
-            return redirect('/addGroup');
-        }  else{
-            if (session()->has('ToDoList')) 
-            {
-                $old_array = session('ToDoList');
-                $old_array[$req->group]=[];
-                $setSession=['ToDoList'=> $old_array];
-                session($setSession);
-                return redirect('/list');
-            } else {
-                $setSession=['ToDoList'=> [$req->group=>[]]];
-                session($setSession);
-                return redirect('/list');
-            }
-        }
+          $this->validate($req, [
+            'group' => 'required|alpha_num',
+          ]);
+
+          $list = new Lists;
+          $list->name = $req->group;
+          $list->save();
+          return redirect('/list');
+
     }
 
     public function addList(Request $req){
-        if (empty($req->text) || empty($req->select)){
+
+            $this->validate($req, [
+              'text' => 'required|alpha_num',
+              'select' => 'required',
+            ]);
+
+            $task = new Tasks(['name' => $req->text]);
+            $list = Lists::where('name', $req->select)->firstOrFail();
+            $list->getTasks()->save($task);
+
+            /**
+            * Метод 2
+            */
+            /*
+            $task = new Tasks;
+            $task->lists_id =Lists::where('name', $req->select)->value('id');
+            $task->name = $req->text;
+            $task->save();
+            */
+
             return redirect('/list');
-        }  else{
-            if (session()->has('ToDoList')) 
-            {
-                $old_array = session('ToDoList');
-                $old_array[$req->select][]=$req->text;
-                $setSession=['ToDoList'=> $old_array];
-                session($setSession);
-                
-                return redirect('/list');
-            } else {
-                return redirect('/list');
-            }
-        }
-        
+
     }
-    public function del($group,$list){
-            if (session()->has('ToDoList')) 
-            {
-                $old_array = session('ToDoList');
-                if (empty( $old_array[$group]) || empty( $old_array[$group][$list]) ) {
-                    return redirect('/list');
-                } else {
-                    unset($old_array[$group][$list]);
-                    $setSession=['ToDoList'=> $old_array];
-                    session($setSession);
-                    return redirect('/list');
-                }
-            } else {
-                return redirect('/list');
-            }
+    public function del($group,$name){
+            $list = Lists::where('name', $group)->firstOrFail();
+            $delete = $list->getTasks()->where('name', $name)->delete();
+            return redirect('/list');
         }
 
     public function delGroup($group){
-            if (session()->has('ToDoList')) 
-            {
-                $old_array = session('ToDoList');
-                unset($old_array[$group]);
-                $setSession=['ToDoList'=> $old_array];
-                session($setSession);
-                return redirect('/list');
-            } else {
-                return redirect('/list');
-            }
-        }
-    
-    public function editGroup($group){
-        if (session()->has('ToDoList')) 
-        {   
-            $old_array = session('ToDoList');
-                
-            if (empty( $old_array[$group])) {
-                return redirect('/list');
-            } else {
-                return view('editGroup',['group'=>$group]);
-            }
-        } else {
+            $deletedRows = Lists::where('name', $group)->first();
+            $deletedRows->getTasks()->delete();
+            $deletedRows->delete();
             return redirect('/list');
         }
-            
+
+    public function editGroup($group){
+        $data = Lists::where('name',$group)->with('getTasks')->firstOrFail();
+        return view('editGroup',['data'=>$data]);
     }
 
     public function editGroupPOST(Request $req){
-        // dd($req->all());
-        if (empty($req->group)){
-            return redirect('/list');
-        }  else{
-             if (session()->has('ToDoList')) 
-            {   
-                $old_array = session('ToDoList');
-                if (empty( $old_array[$req->group])) {
-                    return redirect('/list');
-                } else {
-                    $group_array = $old_array[$req->group];
-                
-                    foreach ($group_array as $key => $value) {
-                        $group_array[$key]=$req->$key;
-                    }
-                    $old_array[$req->group]=$group_array;
-                    $setSession=['ToDoList'=> $old_array];
-                    session($setSession);
-                    return redirect('/list');
-                }
-            } else {
-                return redirect('/list');
-            }
-        }
-
+          DB::beginTransaction();
+              foreach ($req->except('_token') as $key => $value) {
+                  $task = Tasks::lockForUpdate()->find($key);
+                  $task->name = $value;
+                  $task->save();
+              }
+          DB::commit();
+          return redirect('/list');
     }
 
- 
+
 
     public function sortGroup($group){
-        if (session()->has('ToDoList')) 
-        {
-            $old_array = session('ToDoList');
-            if (empty( $old_array[$group])) {
-                return redirect('/list');
-            } else {
-                $group_array = $old_array[$group];
-                if (session()->has('sorted')) {
-                    if (session()->get('sorted')===true) {
-                        arsort($group_array);
-                        session(['sorted'=>false]);
-                    } else{
-                        natcasesort($group_array);
-                        session(['sorted'=>true]);
-                    }
-                } else{
-                    natcasesort($group_array);
-                    session(['sorted'=>true]);
-                }
-                $old_array[$group]=$group_array;
-                $setSession=['ToDoList'=> $old_array];
-                session($setSession);
-                return redirect('/view/'.$group);
-            }
-        } else {
-            return redirect('/list');
-        }
+          session()->has('sorted')?session(['sorted'=>!session('sorted')]):session(['sorted'=>true]);
+          return redirect()->back();
     }
 
-    public function viewGroup(Request $request,$group){
+    public function viewGroup($group){
 
-        if (session()->has('ToDoList')) 
-        {   
-            $items = session('ToDoList');
-            if (empty( $items[$group])) {
-                return redirect('/list');
-            } else {
-                if(count($items[$group])>=10){
-                        // Get current page form url e.x. &page=1
-                        $currentPage = LengthAwarePaginator::resolveCurrentPage();
-                
-                        // Create a new Laravel collection from the array data
-                        $itemCollection = collect($items[$group]);
-                
-                        // Define how many items we want to be visible in each page
-                        $perPage = 10;
-                
-                        // Slice the collection to get the items to display in current page
-                        $currentPageItems = $itemCollection->slice(($currentPage * $perPage) - $perPage, $perPage)->all();
-                
-                        // Create our paginator and pass it to the view
-                        $paginatedItems= new LengthAwarePaginator($currentPageItems , count($itemCollection), $perPage);
-                
-                        // set url path for generted links
-                        $paginatedItems->setPath($request->url());
-                        $items[$group]=$paginatedItems;
-                }
-                return view('task',['items'=>[$group=>$items[$group]]]);
-            }
-        } else {
-            return redirect('/list');
-        }
+        DB::beginTransaction();
+          $lists= Lists::where('name',$group)->firstOrFail();
+          if (session()->has('sorted')){
+              session('sorted') ?
+              $task = Tasks::where('lists_id', $lists->id)->orderBy('name', 'desc')->paginate(10) :
+              $task = Tasks::where('lists_id', $lists->id)->orderBy('name', 'asc')->paginate(10);
+          } else{
+              $task = Tasks::where('lists_id', $lists->id)->paginate(10);
+          }
+        DB::commit();
+        return view('task',['items'=>$task,'name'=>$lists->name]);
     }
 
 

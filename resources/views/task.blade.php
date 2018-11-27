@@ -8,7 +8,7 @@
 
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet" type="text/css">
-        
+
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
@@ -68,20 +68,20 @@
     </head>
     <body>
         <div class="flex-center position-ref full-height">
-           
+
 
             <div class="content">
-            
 
-               
-                
-                <!--Вывод задач --> 
-              
+
+
+
+                <!--Вывод задач -->
+<?/*
                 @foreach ($items as $key => $value)
                     <h3>
                         <span class="badge badge-secondary">
-                            {{$key}} 
-                            
+                            {{$key}}
+
                                 <a href="{{url('/del/'.$key) }}">
                                     <i class="fas fa-trash-alt"></i>
                                 </a>
@@ -97,20 +97,48 @@
                         @foreach($value as $k=>$v)
                         <li class="list-group-item">
                             {{$v}}
-                            <span class="badge "><a href="{{ url('/del/'.$key.'/'.$k) }}"><i class="fas fa-trash-alt"></i></a></span>
+                            <span class="badge "><a href="{{ url('/del/'.$key.'/'.$v) }}"><i class="fas fa-trash-alt"></i></a></span>
                         </li>
                         @endforeach
-                        
-                        @if (is_object($items[$key]) )
-                        <div class="flex-center">
-                            {{ $items[$key]->links() }}
-                        </div>
-                        @endif
-                    </ul> 
+
+
+                    </ul>
                 @endforeach
+                {{ $items->links() }}
                 <a href="{{url('/list')}}">На главную</a>
-              
-                
+                */?>
+
+
+
+                  <h3>
+                      <span class="badge badge-secondary">
+                          {{ $name}}
+
+                              <a href="{{url('/del/'.$name) }}">
+                                  <i class="fas fa-trash-alt"></i>
+                              </a>
+                              <a href="{{ url('/edit/'.$name) }}">
+                                  <i class="fas fa-edit"></i>
+                              </a>
+                              <a href="{{ url('/sort/'.$name) }}">
+                                  <i class="fas fa-sort"></i>
+                              </a>
+                      </span>
+                  </h3>
+                  <ul class="list-group">
+                      @foreach($items as $k=>$v)
+                      <li class="list-group-item">
+                          {{$v->name}}
+                          <span class="badge "><a href="{{ url('/del/'.$name.'/'.$v->name) }}"><i class="fas fa-trash-alt"></i></a></span>
+                      </li>
+                      @endforeach
+                  </ul>
+
+                  <a href="{{url('/list')}}">На главную</a>
+
+
+                  {{ $items->links() }}
+
 
         </div>
     </body>

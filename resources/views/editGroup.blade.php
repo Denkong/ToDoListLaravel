@@ -8,7 +8,7 @@
 
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet" type="text/css">
-        
+
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
@@ -68,27 +68,31 @@
     </head>
     <body>
         <div class="flex-center position-ref full-height">
-           
+
 
             <div class="content">
-            
-                    
-                    
-                
+
+
+
+
                <form method="POST" action="{{url('/editGroup')}}">
 	                {!! csrf_field() !!}
-                    <input type="hidden" value="{{$group}}"  name='group' >
+
                     <div class="form-group">
-                        <label>{{$group}} </label>
-                        @foreach (session('ToDoList')[$group] as $key => $value )
-                            <input type="test" class="form-control" value="{{$value}}"  name='{{$key}}' >
-                        @endforeach
-                        
+
+
+
+                        <label>{{$data->name}} </label>
+                          @foreach($data->getTasks as $k => $v)
+                            <input type="text" class="form-control" value="{{$v->name}}"  name='{{$v->id}}' >
+                          @endforeach
+
+
                     </div>
-                    
+
                     <button type="submit" class="btn btn-primary">Изменить</button>
                 </form>
-                
+
         </div>
     </body>
 </html>

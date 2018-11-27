@@ -8,7 +8,7 @@
 
         <!-- Fonts -->
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet" type="text/css">
-        
+
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
 
@@ -68,11 +68,13 @@
     </head>
     <body>
         <div class="flex-center position-ref full-height">
-           
+
 
             <div class="content">
-            
 
+                @foreach ($errors->all() as $error)
+                  <p>{{ $error }}</p>
+                @endforeach
                 <form method="POST" action="{{url('/addList')}}">
 	                {!! csrf_field() !!}
                     <div class="form-group">
@@ -81,9 +83,9 @@
                     </div>
                     <div class="form-group">
                         <label for="exampleFormControlSelect1">Выберите список</label>
-                        <select class="form-control" id="exampleFormControlSelect1" name="select">     
-                            @foreach ($items as $key => $value )
-                                <option>{{$key}}</option>
+                        <select class="form-control" id="exampleFormControlSelect1" name="select">
+                            @foreach ($items as $value )
+                                <option>{{$value}}</option>
                             @endforeach
                         </select>
                     </div>
@@ -92,34 +94,34 @@
                 <div class="links">
                     <a href="{{ url('/addGroup') }}">Нету списка задач? Добавьте</a>
                 </div>
-                <h1>Ваши списки задач:</h1>   
-                @foreach ($items as $key => $value)
-                
-                    <h3><a href="{{url('/view/'.$key)}}">
+                <h1>Ваши списки задач:</h1>
+                @foreach ($items as $value)
+
+                    <h3><a href="{{url('/view/'.$value)}}">
                         <span class="badge badge-secondary">
-                         {{$key}}  
-                            
-                                <a href="{{url('/del/'.$key) }}">
+                         {{$value}}
+
+                                <a href="{{url('/del/'.$value) }}">
                                     <i class="fas fa-trash-alt"></i>
                                 </a>
-                                <a href="{{ url('/edit/'.$key) }}">
+                                <a href="{{ url('/edit/'.$value) }}">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                              
+
                         </span></a>
                     </h3>
-               
+
                 @endforeach
 
 
                 <?/*
-                <!--Вывод задач --> 
-                <h1>Ваши задачи:</h1>   
+                <!--Вывод задач -->
+                <h1>Ваши задачи:</h1>
                 @foreach ($items as $key => $value)
                     <h3>
                         <span class="badge badge-secondary">
-                            {{$key}} 
-                            
+                            {{$key}}
+
                                 <a href="{{url('/del/'.$key) }}">
                                     <i class="fas fa-trash-alt"></i>
                                 </a>
@@ -138,23 +140,23 @@
                             <span class="badge "><a href="{{ url('/del/'.$key.'/'.$k) }}"><i class="fas fa-trash-alt"></i></a></span>
                         </li>
                         @endforeach
-                        
+
                         @if (is_object($items[$key]) )
                         <div class="flex-center">
                             {{ $items[$key]->links() }}
                         </div>
                         @endif
-                    </ul> 
+                    </ul>
                 @endforeach
                 */?>
-                
+
                <?
                /* @if (session()->has('ToDoList'))
                     @foreach (session('ToDoList') as $key => $value )
                         <h3>
                             <span class="badge badge-secondary">
-                                {{$key}} 
-                                
+                                {{$key}}
+
                                     <a href="{{url('/del/'.$key) }}">
                                         <i class="fas fa-trash-alt"></i>
                                     </a>
@@ -173,13 +175,13 @@
                                 <span class="badge "><a href="{{ url('/del/'.$key.'/'.$k) }}"><i class="fas fa-trash-alt"></i></a></span>
                             </li>
                             @endforeach
-                            
-                        </ul> 
-                    
+
+                        </ul>
+
                     @endforeach
-                @endif 
+                @endif
                 */?>
-                
+
 
         </div>
     </body>
